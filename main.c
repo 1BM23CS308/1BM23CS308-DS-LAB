@@ -1,65 +1,81 @@
-#include<stdio.h>
-#include<stdlib.h>
-#define SIZE 5
+#include <stdio.h>
+#define MAX 100
 
-int stack[SIZE], top = -1;
+char stack[MAX];
+int top = -1;
 
-void push(int element) {
-    if (top == SIZE - 1) {
-        printf("Stack overflow: unable to push %d\n", element);
+void push(char x) {
+    if (top == MAX - 1) {
+        printf("Stack Overflow\n");
     } else {
-        top++;
-        stack[top] = element;
-        printf("%d pushed onto the stack\n", element);
+        stack[++top] = x;
     }
 }
 
-void pop() {
+char pop() {
     if (top == -1) {
-        printf("Stack underflow: no element to pop\n");
+        printf("Stack Underflow\n");
+        return -1;
     } else {
-        printf("%d popped from the stack\n", stack[top]);
-        top--;
+        return stack[top--];
     }
 }
 
-void display() {
-    if (top == -1) {
-        printf("Stack is empty\n");
+int precedence(char x) {
+    if (x == '^') {
+        return 3;
+    } else if (x == '*' || x == '/') {
+        return 2;
+    } else if (x == '+' || x == '-') {
+        return 1;
     } else {
-        printf("Stack elements: ");
-        for (int i = top; i >= 0; i--) {
-            printf("%d ", stack[i]);
+        return 0;
+    }
+}
+
+int isOperand(char ch) {
+    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) {
+        return 1;
+    }
+    return 0;
+}
+
+void infixToPostfix(char* exp) {
+    char postfix[MAX];
+    int i, j = 0;
+
+    for (i = 0; exp[i] != '\0'; i++) {
+        char ch = exp[i];
+
+        if (isOperand(ch)) {
+            postfix[j++] = ch;
+        } else if (ch == '(') {
+            push(ch);
+        } else if (ch == ')') {
+            while (top != -1 && stack[top] != '(') {
+                postfix[j++] = pop();
+            }
+            pop();
+        } else {
+            while (top != -1 && precedence(stack[top]) >= precedence(ch)) {
+                postfix[j++] = pop();
+            }
+            push(ch);
         }
-        printf("\n");
     }
+
+    while (top != -1) {
+        postfix[j++] = pop();
+    }
+
+    postfix[j] = '\0';
+    printf("Postfix Expression: %s\n", postfix);
 }
 
 int main() {
-    int choice, element;
-
-    while (1) {
-        printf("\n1. Push\n2. Pop\n3. Display\n4. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case 1:
-                printf("Enter element to push: ");
-                scanf("%d", &element);
-                push(element);
-                break;
-            case 2:
-                pop();
-                break;
-            case 3:
-                display();
-                break;
-            case 4:
-                exit(0);
-            default:
-                printf("Invalid choice, please try again\n");
-        }
-    }
+    char infix[MAX];
+    printf("Enter infix expression: ");
+    scanf("%s", infix);
+    infixToPostfix(infix);
     return 0;
 }
